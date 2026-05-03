@@ -6,7 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListCampaignsParams = {
-  limit?: number;
-  offset?: number;
-};
+export type UpdateBusinessBodySocialLinks = { [key: string]: string } | null;

@@ -6,7 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListCampaignsParams = {
-  limit?: number;
-  offset?: number;
-};
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string;
+  businessCount: number;
+}

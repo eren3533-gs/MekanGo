@@ -6,7 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListCampaignsParams = {
-  limit?: number;
-  offset?: number;
-};
+export interface UpdateProductBody {
+  name?: string;
+  description?: string | null;
+  price?: number;
+  image?: string | null;
+}

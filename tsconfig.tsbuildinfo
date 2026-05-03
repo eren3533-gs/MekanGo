@@ -1,0 +1,1160 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: MekanGo API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: categories
+    description: Business categories
+  - name: businesses
+    description: Business profiles
+  - name: campaigns
+    description: Business campaigns and promotions
+  - name: products
+    description: Business products and menu items
+  - name: reviews
+    description: User reviews
+  - name: favorites
+    description: User favorites
+  - name: subscriptions
+    description: Subscription plans
+  - name: analytics
+    description: Business analytics
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /businesses:
+    get:
+      operationId: listBusinesses
+      tags: [businesses]
+      summary: List businesses with filters
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: minRating
+          in: query
+          schema:
+            type: number
+        - name: hasActiveCampaign
+          in: query
+          schema:
+            type: boolean
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of businesses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessListResponse"
+    post:
+      operationId: createBusiness
+      tags: [businesses]
+      summary: Create a new business profile
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBusinessBody"
+      responses:
+        "201":
+          description: Business created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+
+  /businesses/featured:
+    get:
+      operationId: getFeaturedBusinesses
+      tags: [businesses]
+      summary: Get featured businesses for homepage
+      responses:
+        "200":
+          description: Featured businesses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessCard"
+
+  /businesses/my:
+    get:
+      operationId: getMyBusiness
+      tags: [businesses]
+      summary: Get the authenticated user's business
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: User's business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+        "404":
+          description: No business found
+
+  /businesses/{id}:
+    get:
+      operationId: getBusiness
+      tags: [businesses]
+      summary: Get business detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessDetail"
+        "404":
+          description: Business not found
+    patch:
+      operationId: updateBusiness
+      tags: [businesses]
+      summary: Update business profile
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBusinessBody"
+      responses:
+        "200":
+          description: Updated business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+
+  /businesses/{id}/campaigns:
+    get:
+      operationId: getBusinessCampaigns
+      tags: [campaigns]
+      summary: Get campaigns for a business
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+
+  /businesses/{id}/products:
+    get:
+      operationId: getBusinessProducts
+      tags: [products]
+      summary: Get products/menu for a business
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /businesses/{id}/reviews:
+    get:
+      operationId: getBusinessReviews
+      tags: [reviews]
+      summary: Get reviews for a business
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review for a business
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      tags: [campaigns]
+      summary: List all active campaigns
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Active campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampaignWithBusiness"
+
+  /my/campaigns:
+    get:
+      operationId: listMyCampaigns
+      tags: [campaigns]
+      summary: List campaigns for authenticated user's business
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: My campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+    post:
+      operationId: createCampaign
+      tags: [campaigns]
+      summary: Create a campaign
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCampaignBody"
+      responses:
+        "201":
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /my/campaigns/{id}:
+    patch:
+      operationId: updateCampaign
+      tags: [campaigns]
+      summary: Update a campaign
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCampaignBody"
+      responses:
+        "200":
+          description: Updated campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    delete:
+      operationId: deleteCampaign
+      tags: [campaigns]
+      summary: Delete a campaign
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /my/products:
+    get:
+      operationId: listMyProducts
+      tags: [products]
+      summary: List products for authenticated user's business
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: My products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /my/products/{id}:
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductBody"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /favorites:
+    get:
+      operationId: listFavorites
+      tags: [favorites]
+      summary: List user's favorite businesses
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: Favorites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessCard"
+    post:
+      operationId: addFavorite
+      tags: [favorites]
+      summary: Add business to favorites
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteBody"
+      responses:
+        "201":
+          description: Added to favorites
+
+  /favorites/{businessId}:
+    delete:
+      operationId: removeFavorite
+      tags: [favorites]
+      summary: Remove business from favorites
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removed
+
+  /subscriptions/plans:
+    get:
+      operationId: listSubscriptionPlans
+      tags: [subscriptions]
+      summary: List available subscription plans
+      responses:
+        "200":
+          description: Subscription plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionPlan"
+
+  /subscriptions/my:
+    get:
+      operationId: getMySubscription
+      tags: [subscriptions]
+      summary: Get authenticated user's current subscription
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: Current subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /subscriptions/subscribe:
+    post:
+      operationId: subscribe
+      tags: [subscriptions]
+      summary: Subscribe to a plan
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscribeBody"
+      responses:
+        "201":
+          description: Subscribed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /analytics/my:
+    get:
+      operationId: getMyAnalytics
+      tags: [analytics]
+      summary: Get analytics for authenticated user's business
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: Business analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAnalytics"
+
+  /analytics/my/record-view:
+    post:
+      operationId: recordProfileView
+      tags: [analytics]
+      summary: Record a profile view for a business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordViewBody"
+      responses:
+        "204":
+          description: View recorded
+
+components:
+  securitySchemes:
+    clerkAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+        businessCount:
+          type: integer
+      required:
+        - id
+        - name
+        - slug
+        - icon
+        - businessCount
+
+    BusinessCard:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        city:
+          type: string
+        coverImage:
+          type: string
+          nullable: true
+        logoImage:
+          type: string
+          nullable: true
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        shortDescription:
+          type: string
+          nullable: true
+        hasActiveCampaign:
+          type: boolean
+        activeCampaignDiscount:
+          type: integer
+          nullable: true
+        subscriptionTier:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+        - slug
+        - categoryId
+        - categoryName
+        - city
+        - rating
+        - reviewCount
+        - hasActiveCampaign
+
+    BusinessListResponse:
+      type: object
+      properties:
+        businesses:
+          type: array
+          items:
+            $ref: "#/components/schemas/BusinessCard"
+        total:
+          type: integer
+      required:
+        - businesses
+        - total
+
+    Business:
+      type: object
+      properties:
+        id:
+          type: integer
+        ownerId:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        categoryId:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        shortDescription:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        city:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+        logoImage:
+          type: string
+          nullable: true
+        workingHours:
+          type: string
+          nullable: true
+        socialLinks:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+        rating:
+          type: number
+        reviewCount:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - ownerId
+        - name
+        - slug
+        - categoryId
+        - city
+        - rating
+        - reviewCount
+        - createdAt
+
+    BusinessDetail:
+      allOf:
+        - $ref: "#/components/schemas/Business"
+        - type: object
+          properties:
+            categoryName:
+              type: string
+            activeCampaigns:
+              type: array
+              items:
+                $ref: "#/components/schemas/Campaign"
+          required:
+            - categoryName
+            - activeCampaigns
+
+    CreateBusinessBody:
+      type: object
+      properties:
+        name:
+          type: string
+        categoryId:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        shortDescription:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        city:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+        logoImage:
+          type: string
+          nullable: true
+        workingHours:
+          type: string
+          nullable: true
+        socialLinks:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+      required:
+        - name
+        - categoryId
+        - city
+
+    UpdateBusinessBody:
+      type: object
+      properties:
+        name:
+          type: string
+        categoryId:
+          type: integer
+        description:
+          type: string
+          nullable: true
+        shortDescription:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        city:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+        logoImage:
+          type: string
+          nullable: true
+        workingHours:
+          type: string
+          nullable: true
+        socialLinks:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: string
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: integer
+        businessId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        discountPercent:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - businessId
+        - title
+        - discountPercent
+        - startDate
+        - endDate
+        - isActive
+        - createdAt
+
+    CampaignWithBusiness:
+      allOf:
+        - $ref: "#/components/schemas/Campaign"
+        - type: object
+          properties:
+            businessName:
+              type: string
+            businessCity:
+              type: string
+            businessLogoImage:
+              type: string
+              nullable: true
+          required:
+            - businessName
+            - businessCity
+
+    CreateCampaignBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        discountPercent:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+      required:
+        - title
+        - discountPercent
+        - startDate
+        - endDate
+
+    UpdateCampaignBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        discountPercent:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        businessId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        image:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - businessId
+        - name
+        - price
+        - createdAt
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        image:
+          type: string
+          nullable: true
+      required:
+        - name
+        - price
+
+    UpdateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+        image:
+          type: string
+          nullable: true
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        businessId:
+          type: integer
+        userId:
+          type: string
+        userName:
+          type: string
+        rating:
+          type: integer
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - businessId
+        - userId
+        - userName
+        - rating
+        - createdAt
+
+    CreateReviewBody:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          nullable: true
+      required:
+        - rating
+
+    FavoriteBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+      required:
+        - businessId
+
+    SubscriptionPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        tier:
+          type: string
+        priceMonthly:
+          type: number
+        features:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - name
+        - tier
+        - priceMonthly
+        - features
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        planId:
+          type: integer
+        planName:
+          type: string
+        tier:
+          type: string
+        status:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - planId
+        - planName
+        - tier
+        - status
+        - startDate
+        - createdAt
+
+    SubscribeBody:
+      type: object
+      properties:
+        planId:
+          type: integer
+      required:
+        - planId
+
+    BusinessAnalytics:
+      type: object
+      properties:
+        totalProfileViews:
+          type: integer
+        viewsThisMonth:
+          type: integer
+        viewsLastMonth:
+          type: integer
+        totalCampaignClicks:
+          type: integer
+        totalReviews:
+          type: integer
+        averageRating:
+          type: number
+        totalProducts:
+          type: integer
+        totalCampaigns:
+          type: integer
+        dailyViews:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyViewCount"
+      required:
+        - totalProfileViews
+        - viewsThisMonth
+        - viewsLastMonth
+        - totalCampaignClicks
+        - totalReviews
+        - averageRating
+        - totalProducts
+        - totalCampaigns
+        - dailyViews
+
+    DailyViewCount:
+      type: object
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+      required:
+        - date
+        - count
+
+    RecordViewBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+      required:
+        - businessId
