@@ -1,33 +1,29 @@
-import { Link } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import type { Category } from "@workspace/api-client-react";
-import * as Icons from "lucide-react";
+import * as React from "react"
+import * as SeparatorPrimitive from "@radix-ui/react-separator"
 
-interface CategoryCardProps {
-  category: Category;
-}
+import { cn } from "@/lib/utils"
 
-export function CategoryCard({ category }: CategoryCardProps) {
-  // @ts-ignore
-  const Icon = Icons[category.icon] || Icons.MapPin;
+const Separator = React.forwardRef<
+  React.ElementRef<typeof SeparatorPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
+>(
+  (
+    { className, orientation = "horizontal", decorative = true, ...props },
+    ref
+  ) => (
+    <SeparatorPrimitive.Root
+      ref={ref}
+      decorative={decorative}
+      orientation={orientation}
+      className={cn(
+        "shrink-0 bg-border",
+        orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]",
+        className
+      )}
+      {...props}
+    />
+  )
+)
+Separator.displayName = SeparatorPrimitive.Root.displayName
 
-  return (
-    <Link href={`/businesses?categoryId=${category.id}`}>
-      <Card className="hover-elevate transition-all duration-300 group cursor-pointer border-border/50 hover:border-primary/50 text-center bg-card/50 backdrop-blur-sm h-full">
-        <CardContent className="p-6 flex flex-col items-center justify-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
-            <Icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
-          </div>
-          <div>
-            <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
-              {category.name}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              {category.businessCount} Mekan
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
+export { Separator }
