@@ -1,20 +1,15 @@
 {
-  "name": "mekango",
-  "version": "1.0.0",
-  "private": true,
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "build": "pnpm run typecheck && next build",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
-  "dependencies": {
-    "next": "latest",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
+  "private": true,
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "prettier": "^3.0.0"
+    "typescript": "~5.9.2",
+    "prettier": "^3.8.1"
   }
 }
